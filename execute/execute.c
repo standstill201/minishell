@@ -6,164 +6,86 @@
 /*   By: gychoi <gychoi@student.42seoul.kr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/12 01:08:42 by gychoi            #+#    #+#             */
-/*   Updated: 2023/02/16 22:01:35 by gychoi           ###   ########.fr       */
+/*   Updated: 2023/02/12 01:49:46 by gychoi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../header/execute.h"
-#include <stdio.h> // must delete!
+// write some fuzzy execution logic 
+// with pseudo code
 
-extern char	**environ;	// 임시 env
-
-char	*find_path(char *command)
-{
-	int		i;
-	char	*path;
-	char	*find;
-	char	**paths;
-
-	if (access(command, F_OK | X_OK) == 0)
-		return (command);
-	i = 0;
-	while (ft_strncmp(environ[i], "PATH=", 5))
-		i++;
-	if (environ[i] == NULL)
-		return (NULL);
-	paths = ft_split(environ[i] + 5, ':');
-	i = 0;
-	find = NULL;
-	while (paths[i])
-	{
-		path = ft_strjoin(paths[i], command);
-		if (access(path, F_OK | X_OK) == 0)
-			find = ft_strdup(path);
-		free(path);
-		free(paths[i++]);
-	}
-	free(paths);
-	return (find);
-}
-
-int	execute_command(t_cmd *node)
-{
-	char	*command;
-	char	*path;
-
-	command = ft_strjoin("/", node->cmd);
-	path = find_path(command);
-	if (command == NULL || path == NULL)
-		return (0);
-	if (execve(path, node->args, environ) == -1)
-	{
-		free(command);
-		free(path);
-		printf("EXECVE FAILED\n");
-		// free(args);
-	}
-	return (0);
-}
-
-// env에 대한 정보가 필요하다.
-// return value에 대한 고민
-int	execute_builtin(t_cmd *node)
-{
-	int	ret;
-
-	ret = 0;
-	if (ft_strncmp(node->cmd, "echo", 5) == 0)
-	{
-		ft_putstr_fd("PROD: ECHO EXECUTED\n", 1);
-		exit(1);
-	}
-	else if (ft_strncmp(node->cmd, "cd", 3) == 0)
-	{
-		ft_putstr_fd("PROD: CD EXECUTED\n", 1);
-		exit(1);
-	}
-	else if (ft_strncmp(node->cmd, "pwd", 4) == 0)
-	{
-		ft_putstr_fd("PROD: PWD EXECUTED\n", 1);
-		exit(1);
-	}
-	else if (ft_strncmp(node->cmd, "export", 7) == 0)
-	{
-		ft_putstr_fd("PROD: EXPORT EXECUTED\n", 1);
-		exit(1);
-	}
-	else if (ft_strncmp(node->cmd, "unset", 6) == 0)
-	{
-		ft_putstr_fd("PROD: UNSET EXECUTED\n", 1);
-		exit(1);
-	}
-	else if (ft_strncmp(node->cmd, "env", 4) == 0)
-	{
-		ft_putstr_fd("PROD: ENV EXECUTED\n", 1);
-		exit(1);
-	}
-	else if (ft_strncmp(node->cmd, "exit", 5) == 0)
-	{
-		ft_putstr_fd("PROD: EXIT EXECUTED\n", 1);
-		exit(1);
-	}
-	return (ret);
-}
-
-// need to add FUNCTION_GUARD
-static int	pipeline(t_cmd *node)
+void	execute_pipe(t_list *info, char **command)
 {
 	int		pfd[2];
-	int		status;
 	pid_t	pid;
 
 	pipe(pfd);
 	pid = fork();
-	if (pid == -1)
-		minishell_error("fork error");
-	else if (pid == 0)
+	if (pid == 0)
 	{
 		close(pfd[READ_END]);
-		dup2(pfd[WRITE_END], STDOUT_FILENO);
-		close(pfd[WRITE_END]);
-		// need to check error message
-		if (!execute_builtin(node))
-			if (!execute_command(node))
-				minishell_error("command not found\n");
+		dup2(pfd[WRITE_END], info->fd_out);
+		close(pfd[WRITED_END]);
+		execute_command(command, info->envp);
 	}
 	else
 	{
-		waitpid(pid, &status, WNOHANG);
+		waitpid(pid, NULL, WNOHANG);
 		close(pfd[WRITE_END]);
-		dup2(pfd[READ_END], STDIN_FILENO);
-		close(pfd[READ_END]);
+		dup2(pfd[READ_END], info->fd_in);
 	}
-	return (status);
 }
 
-// fd_in, fd_out에 대해서도 다뤄야 한다.
-int	execute(t_cmd *root)
+void	execute_builtin(t_list *info, char **command)
 {
-	t_cmd	*node;
+	if (accurate_strncmp(command[0], "cd"))
+		ft_echo(command);
+	else if
+		cd, pwd, export, unset, env, exit;
+	// maybe info needs to include envp
+}
+
+// make heredoc to file?
+void	redirect(t_list *info)
+{
+	// info needs infile, outfile
+	if (redirect '>')
+		info->fd_in = open(infile);
+	else
+		info->fd_in = STDIN_FILENO;
+	if (redirect '<')
+		info->fd_out = open(outfile);
+	else
+		info->fd_out = STDOUT_FILENO;
+}
+
+void	execution(t_list *head)
+{
+	t_list	*cur;
 	pid_t	pid;
 	int		status;
+	char	**command;
 
 	pid = fork();
-	if (pid == -1)
-		minishell_error("fork error");
-	else if (pid == 0)
+	if (pid == 0)
 	{
-		node = root;
-		while (node->next != NULL)
+		// NULL start list head
+		cur = head->next;
+		while (cur != NULL)
 		{
-			// should get return value
-			pipeline(node);
-			node = node->next;
+			command = cur->content;
+			// need to know redirect file
+			if (redirect)
+				redirect(cur);
+			if (builtin)
+				execute_builtin(cur, command);
+			else
+				execute_pipe(cur, command);
+			cur = cur->next;
 		}
-		// need to check error message
-		if (!execute_builtin(node))
-			if (!execute_command(node))
-				minishell_error("command not found\n");
 	}
 	else
+	{
 		waitpid(pid, &status, 0);
+	}
 	return (WEXITSTATUS(status));
 }
