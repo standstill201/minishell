@@ -6,7 +6,7 @@
 /*   By: codespace <codespace@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/25 13:04:12 by seokjyoo          #+#    #+#             */
-/*   Updated: 2023/02/15 20:35:38 by codespace        ###   ########.fr       */
+/*   Updated: 2023/02/16 19:45:25 by gychoi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 # include <fcntl.h>
 
 # include "../LIBFT/libft.h"
+# include "execute.h"
 
 #define LINE_SPILL 0
 

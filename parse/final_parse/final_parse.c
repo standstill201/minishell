@@ -6,7 +6,7 @@
 /*   By: codespace <codespace@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/15 11:28:00 by codespace         #+#    #+#             */
-/*   Updated: 2023/02/16 01:59:46 by codespace        ###   ########.fr       */
+/*   Updated: 2023/02/16 19:04:31 by gychoi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ char	**arg_parser(t_list *pre_temp, char **args, int index)
 	int		inside_index;
 
 	inside_index = 0;
-	while (inside_index < index)
+	while (inside_index < index || index == 0 && inside_index == 0)
 	{
 		if (pre_temp->is_meta == 0 && pre_temp->is_here_word == 0
 			&& pre_temp->is_fd_input == 0 && pre_temp->is_fd_new == 0
@@ -104,7 +104,7 @@ void	add_t_cmd(t_cmd **return_val, t_list *pre_temp, t_list *temp)
 		args = NULL;
 	else
 	{
-		args = (char **)malloc(sizeof(char *) * (index));
+		args = (char **)malloc(sizeof(char *) * (index) + 1);
 		args = arg_parser(pre_temp, args, index);
 	}
 	ft_lstadd_back_cmd(return_val, ft_lstnew_cmd(cmd, args));

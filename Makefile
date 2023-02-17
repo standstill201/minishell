@@ -6,7 +6,7 @@
 #    By: codespace <codespace@student.42.fr>        +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/25 13:03:12 by seokjyoo          #+#    #+#              #
-#    Updated: 2023/02/15 18:49:25 by codespace        ###   ########.fr        #
+#    Updated: 2023/02/16 19:23:19 by gychoi           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,6 +32,7 @@ SRC			=	./main/main.c \
 				./parse/final_parse/final_parse.c \
 				./error_handle/minishell_error.c \
 				./gnl/get_next_line.c \
+				./execute/execute.c \
 
 OBJ			=	$(SRC:.c=.o)
 
